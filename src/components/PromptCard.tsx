@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +8,11 @@ interface PromptCardProps {
   imageUrl: string;
   prompt: string;
   title?: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string) => void;
 }
 
-const PromptCard = ({ id, imageUrl, prompt, title }: PromptCardProps) => {
+const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleFavorite }: PromptCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -34,6 +36,11 @@ const PromptCard = ({ id, imageUrl, prompt, title }: PromptCardProps) => {
     }
   };
 
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleFavorite?.(id);
+  };
+
   return (
     <div 
       className="perspective w-full aspect-[3/4] cursor-pointer group"
@@ -54,6 +61,26 @@ const PromptCard = ({ id, imageUrl, prompt, title }: PromptCardProps) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
+          {/* Favorite button */}
+          <button
+            onClick={handleFavorite}
+            className={cn(
+              "absolute top-2 left-2 p-2 rounded-full transition-all duration-300 z-10",
+              "bg-background/60 backdrop-blur-sm hover:bg-background/80",
+              isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}
+            aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
+          >
+            <Heart
+              className={cn(
+                "w-4 h-4 transition-all duration-300",
+                isFavorite 
+                  ? "fill-accent text-accent scale-110" 
+                  : "text-foreground/70 hover:text-accent"
+              )}
+            />
+          </button>
+          
           {title && (
             <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <p className="text-sm font-medium text-foreground truncate">{title}</p>
@@ -68,10 +95,27 @@ const PromptCard = ({ id, imageUrl, prompt, title }: PromptCardProps) => {
 
         {/* Back - Prompt */}
         <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-lg overflow-hidden shadow-card border border-primary/30 bg-gradient-to-br from-card to-muted p-4 flex flex-col">
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex items-start justify-between gap-2 mb-2">
             {title && (
-              <h3 className="text-sm font-semibold text-primary mb-2">{title}</h3>
+              <h3 className="text-sm font-semibold text-primary flex-1">{title}</h3>
             )}
+            <button
+              onClick={handleFavorite}
+              className="p-1.5 rounded-full hover:bg-muted/50 transition-colors"
+              aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
+            >
+              <Heart
+                className={cn(
+                  "w-4 h-4 transition-all duration-300",
+                  isFavorite 
+                    ? "fill-accent text-accent" 
+                    : "text-muted-foreground hover:text-accent"
+                )}
+              />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
             <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
               {prompt}
             </p>

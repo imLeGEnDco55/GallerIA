@@ -19,6 +19,16 @@ const Index = () => {
     setPrompts((prev) => [newPrompt, ...prev]);
   };
 
+  const handleToggleFavorite = (id: string) => {
+    setPrompts((prev) =>
+      prev.map((prompt) =>
+        prompt.id === id
+          ? { ...prompt, isFavorite: !prompt.isFavorite }
+          : prompt
+      )
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -56,6 +66,8 @@ const Index = () => {
               imageUrl={prompt.imageUrl}
               prompt={prompt.prompt}
               title={prompt.title}
+              isFavorite={prompt.isFavorite}
+              onToggleFavorite={handleToggleFavorite}
             />
           ))}
         </div>
