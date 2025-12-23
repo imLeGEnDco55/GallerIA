@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { db } from "@/lib/db";
 import PromptCard from "@/components/PromptCard";
 import AddPromptModal from "@/components/AddPromptModal";
 import EditPromptModal from "@/components/EditPromptModal";
@@ -11,13 +12,36 @@ import { cn } from "@/lib/utils";
 const CATEGORIES = ["Paisajes", "Retratos", "Arte", "Ciencia ficción", "Fantasía"];
 
 const Index = () => {
-  const [prompts, setPrompts] = useState<Prompt[]>(samplePrompts);
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Cargar prompts desde DB
+  useEffect(() => {
+    const loadPrompts = async () => {
+      try {
+        const storedPrompts = await db.getAllPrompts();
+        if (storedPrompts.length > 0) {
+          // Sort desc by date since index returns asc usually, or just reverse.
+          setPrompts(storedPrompts.reverse());
+        } else {
+          // Initialize with samples if empty
+          for (const p of samplePrompts) {
+            await db.addPrompt(p);
+          }
+          setPrompts(samplePrompts);
+        }
+      } catch (error) {
+        console.error("Error loading prompts:", error);
+        setPrompts(samplePrompts); // Fallback
+      }
+    };
+    loadPrompts();
+  }, []);
 
   // Separar favoritos y no favoritos
   const { favorites, regularPrompts } = useMemo(() => {
@@ -29,12 +53,12 @@ const Index = () => {
   // Filtrado en tiempo real por texto y categoría
   const filteredPrompts = useMemo(() => {
     let result = prompts;
-    
+
     // Filtrar por categoría
     if (selectedCategory) {
       result = result.filter((prompt) => prompt.category === selectedCategory);
     }
-    
+
     // Filtrar por texto
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
@@ -44,7 +68,7 @@ const Index = () => {
         prompt.category?.toLowerCase().includes(term)
       );
     }
-    
+
     return result;
   }, [prompts, searchTerm, selectedCategory]);
 
@@ -56,24 +80,29 @@ const Index = () => {
     setSelectedCategory((prev) => (prev === category ? null : category));
   };
 
-  const handleAddPrompt = (newPromptData: Omit<Prompt, "id" | "createdAt" | "updatedAt">) => {
+  const handleAddPrompt = async (newPromptData: Omit<Prompt, "id" | "createdAt" | "updatedAt">) => {
     const newPrompt: Prompt = {
       ...newPromptData,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    await db.addPrompt(newPrompt);
     setPrompts((prev) => [newPrompt, ...prev]);
   };
 
-  const handleToggleFavorite = (id: string) => {
-    setPrompts((prev) =>
-      prev.map((prompt) =>
-        prompt.id === id
-          ? { ...prompt, isFavorite: !prompt.isFavorite }
-          : prompt
-      )
-    );
+  const handleToggleFavorite = async (id: string) => {
+    const promptToUpdate = prompts.find(p => p.id === id);
+    if (promptToUpdate) {
+      const updated = { ...promptToUpdate, isFavorite: !promptToUpdate.isFavorite };
+      await db.updatePrompt(updated);
+      setPrompts((prev) =>
+        prev.map((prompt) =>
+          prompt.id === id ? updated : prompt
+        )
+      );
+    }
   };
 
   const handleEditPrompt = (id: string) => {
@@ -84,13 +113,15 @@ const Index = () => {
     }
   };
 
-  const handleSaveEdit = (updatedPrompt: Prompt) => {
+  const handleSaveEdit = async (updatedPrompt: Prompt) => {
+    await db.updatePrompt(updatedPrompt);
     setPrompts((prev) =>
       prev.map((p) => (p.id === updatedPrompt.id ? updatedPrompt : p))
     );
   };
 
-  const handleDeletePrompt = (id: string) => {
+  const handleDeletePrompt = async (id: string) => {
+    await db.deletePrompt(id);
     setPrompts((prev) => prev.filter((p) => p.id !== id));
   };
 
@@ -108,8 +139,8 @@ const Index = () => {
                 Tu colección de prompts para IA
               </p>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setIsModalOpen(true)}
               className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-110 active:scale-95 transition-transform duration-200"
               aria-label="Agregar nuevo prompt"
@@ -125,7 +156,7 @@ const Index = () => {
         {/* Search results indicator */}
         {(searchTerm || selectedCategory) && (
           <div className="mb-4 text-sm text-muted-foreground">
-            {filteredPrompts.length} resultado{filteredPrompts.length !== 1 ? 's' : ''} 
+            {filteredPrompts.length} resultado{filteredPrompts.length !== 1 ? 's' : ''}
             {searchTerm && <span> para "{searchTerm}"</span>}
             {selectedCategory && <span> en {selectedCategory}</span>}
           </div>
@@ -230,7 +261,7 @@ const Index = () => {
                 </button>
               ))}
             </div>
-            
+
             <div className="relative">
               <input
                 type="text"
