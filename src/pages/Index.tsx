@@ -1,8 +1,24 @@
+import { useState } from "react";
 import PromptCard from "@/components/PromptCard";
+import AddPromptModal from "@/components/AddPromptModal";
 import { samplePrompts } from "@/data/samplePrompts";
+import { Prompt } from "@/types/prompt";
 import { Plus } from "lucide-react";
 
 const Index = () => {
+  const [prompts, setPrompts] = useState<Prompt[]>(samplePrompts);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleAddPrompt = (newPromptData: Omit<Prompt, "id" | "createdAt" | "updatedAt">) => {
+    const newPrompt: Prompt = {
+      ...newPromptData,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setPrompts((prev) => [newPrompt, ...prev]);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -19,6 +35,7 @@ const Index = () => {
             </div>
             
             <button 
+              onClick={() => setIsModalOpen(true)}
               className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-110 active:scale-95 transition-transform duration-200"
               aria-label="Agregar nuevo prompt"
             >
@@ -32,7 +49,7 @@ const Index = () => {
       <main className="container mx-auto px-4 py-6">
         {/* Grid de tarjetas */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {samplePrompts.map((prompt) => (
+          {prompts.map((prompt) => (
             <PromptCard
               key={prompt.id}
               id={prompt.id}
@@ -44,7 +61,7 @@ const Index = () => {
         </div>
 
         {/* Empty state */}
-        {samplePrompts.length === 0 && (
+        {prompts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
               <Plus className="w-10 h-10 text-muted-foreground" />
@@ -58,6 +75,13 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* Add Prompt Modal */}
+      <AddPromptModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSave={handleAddPrompt}
+      />
     </div>
   );
 };
