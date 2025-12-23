@@ -1,73 +1,136 @@
-# Welcome to your Lovable project
+# 🎨 GallerIA - Álbum de Prompts
 
-## Project info
+Una aplicación web moderna para organizar, buscar y gestionar tu colección personal de prompts de IA. Diseñada con un enfoque visual atractivo usando tarjetas con efecto flip y una interfaz intuitiva.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)
+![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite)
 
-## How can I edit this code?
+## ✨ Características
 
-There are several ways of editing your application.
+### 📇 Tarjetas con Flip Animation
+- **Frente**: Vista previa con título, categoría e imagen
+- **Atrás**: Prompt completo con botón de copiado rápido
 
-**Use Lovable**
+### 🔍 Búsqueda y Filtros
+- Búsqueda en tiempo real mientras escribes
+- Filtro por categorías con chips interactivos
+- Panel de búsqueda flotante estilo chat
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### ⭐ Sistema de Favoritos
+- Marca prompts como favoritos con un corazón
+- Los favoritos aparecen "pinneados" en la parte superior
+- Acceso rápido a tus prompts más usados
 
-Changes made via Lovable will be committed automatically to this repo.
+### ✏️ Gestión Completa
+- Crear nuevos prompts con imagen opcional
+- Editar prompts existentes
+- Eliminar con confirmación
+- Copiar prompt al portapapeles con un click
 
-**Use your preferred IDE**
+### 📱 Diseño Responsive
+- Grid adaptable (1-4 columnas según pantalla)
+- Optimizado para móvil, tablet y desktop
+- Dark mode con colores vibrantes
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Stack Tecnológico
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+| Tecnología | Uso |
+|------------|-----|
+| **React 18** | UI con hooks modernos |
+| **TypeScript** | Tipado estático |
+| **Tailwind CSS** | Estilos utility-first |
+| **shadcn/ui** | Componentes accesibles |
+| **Vite** | Build tool ultra-rápido |
+| **Lucide React** | Iconografía consistente |
 
-Follow these steps:
+## 🚀 Instalación
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Clonar repositorio
+git clone https://github.com/imLeGEnDco55/GallerIA.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Entrar al directorio
+cd GallerIA
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Instalar dependencias
+npm install
+# o con bun
+bun install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar servidor de desarrollo
 npm run dev
+# o
+bun dev
 ```
 
-**Edit a file directly in GitHub**
+La app estará disponible en `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📁 Estructura del Proyecto
 
-**Use GitHub Codespaces**
+```
+src/
+├── components/
+│   ├── ui/              # Componentes shadcn/ui
+│   ├── PromptCard.tsx   # Tarjeta con flip animation
+│   ├── AddPromptModal.tsx
+│   ├── EditPromptModal.tsx
+│   └── NavLink.tsx
+├── data/
+│   └── samplePrompts.ts # Prompts de ejemplo
+├── pages/
+│   ├── Index.tsx        # Página principal
+│   └── NotFound.tsx
+├── types/
+│   └── prompt.ts        # Tipos TypeScript
+├── hooks/               # Custom hooks
+├── lib/
+│   └── utils.ts         # Utilidades
+└── index.css            # Estilos globales
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🎯 Uso
 
-## What technologies are used for this project?
+1. **Agregar Prompt**: Click en el botón `+` para crear un nuevo prompt
+2. **Ver Prompt**: Click en una tarjeta para voltearla y ver el contenido completo
+3. **Copiar**: Click en el ícono de copiar en la parte trasera de la tarjeta
+4. **Favoritos**: Click en el corazón para marcar/desmarcar
+5. **Buscar**: Click en la lupa flotante para abrir el panel de búsqueda
+6. **Filtrar**: Selecciona una categoría en el panel de búsqueda
+7. **Editar**: Click en el ícono de lápiz al hacer hover sobre una tarjeta
 
-This project is built with:
+## 🗺️ Roadmap
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- [ ] Persistencia con GitHub API (almacenar en repo)
+- [ ] Mejorador de prompts con IA
+- [ ] Exportar/Importar colección
+- [ ] Compartir prompts individuales
+- [ ] Temas personalizables
+- [ ] Sincronización entre dispositivos
+- [ ] Historial de versiones de prompts
+- [ ] Etiquetas personalizadas
 
-## How can I deploy this project?
+## 🤝 Contribuir
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Las contribuciones son bienvenidas. Para cambios importantes:
 
-## Can I connect a custom domain to my Lovable project?
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-Yes, you can!
+## 📄 Licencia
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+MIT © 2024
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🙏 Agradecimientos
+
+- Construido con [Lovable](https://lovable.dev)
+- Componentes UI de [shadcn/ui](https://ui.shadcn.com/)
+- Iconos de [Lucide](https://lucide.dev/)
+
+---
+
+**⭐ Si te gusta este proyecto, dale una estrella en GitHub!**
