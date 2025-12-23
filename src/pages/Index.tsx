@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import PromptCard from "@/components/PromptCard";
 import AddPromptModal from "@/components/AddPromptModal";
+import EditPromptModal from "@/components/EditPromptModal";
 import { samplePrompts } from "@/data/samplePrompts";
 import { Prompt } from "@/types/prompt";
-import { Plus, Search, X } from "lucide-react";
+import { Plus, Search, X, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Categorías disponibles
@@ -12,9 +13,18 @@ const CATEGORIES = ["Paisajes", "Retratos", "Arte", "Ciencia ficción", "Fantas�
 const Index = () => {
   const [prompts, setPrompts] = useState<Prompt[]>(samplePrompts);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Separar favoritos y no favoritos
+  const { favorites, regularPrompts } = useMemo(() => {
+    const favs = prompts.filter((p) => p.isFavorite);
+    const regular = prompts.filter((p) => !p.isFavorite);
+    return { favorites: favs, regularPrompts: regular };
+  }, [prompts]);
 
   // Filtrado en tiempo real por texto y categoría
   const filteredPrompts = useMemo(() => {
@@ -38,6 +48,10 @@ const Index = () => {
     return result;
   }, [prompts, searchTerm, selectedCategory]);
 
+  // Separar favoritos de filtrados
+  const filteredFavorites = useMemo(() => filteredPrompts.filter((p) => p.isFavorite), [filteredPrompts]);
+  const filteredRegular = useMemo(() => filteredPrompts.filter((p) => !p.isFavorite), [filteredPrompts]);
+
   const handleCategoryClick = (category: string) => {
     setSelectedCategory((prev) => (prev === category ? null : category));
   };
@@ -60,6 +74,24 @@ const Index = () => {
           : prompt
       )
     );
+  };
+
+  const handleEditPrompt = (id: string) => {
+    const promptToEdit = prompts.find((p) => p.id === id);
+    if (promptToEdit) {
+      setEditingPrompt(promptToEdit);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleSaveEdit = (updatedPrompt: Prompt) => {
+    setPrompts((prev) =>
+      prev.map((p) => (p.id === updatedPrompt.id ? updatedPrompt : p))
+    );
+  };
+
+  const handleDeletePrompt = (id: string) => {
+    setPrompts((prev) => prev.filter((p) => p.id !== id));
   };
 
   return (
@@ -91,15 +123,41 @@ const Index = () => {
       {/* Main content */}
       <main className="container mx-auto px-4 py-6 pb-24">
         {/* Search results indicator */}
-        {searchTerm && (
+        {(searchTerm || selectedCategory) && (
           <div className="mb-4 text-sm text-muted-foreground">
-            {filteredPrompts.length} resultado{filteredPrompts.length !== 1 ? 's' : ''} para "{searchTerm}"
+            {filteredPrompts.length} resultado{filteredPrompts.length !== 1 ? 's' : ''} 
+            {searchTerm && <span> para "{searchTerm}"</span>}
+            {selectedCategory && <span> en {selectedCategory}</span>}
           </div>
         )}
 
-        {/* Grid de tarjetas */}
+        {/* Favoritos (pinneds) */}
+        {filteredFavorites.length > 0 && (
+          <>
+            <div className="flex items-center gap-2 mb-3">
+              <Pin className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium text-foreground">Favoritos</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
+              {filteredFavorites.map((prompt) => (
+                <PromptCard
+                  key={prompt.id}
+                  id={prompt.id}
+                  imageUrl={prompt.imageUrl}
+                  prompt={prompt.prompt}
+                  title={prompt.title}
+                  isFavorite={prompt.isFavorite}
+                  onToggleFavorite={handleToggleFavorite}
+                  onEdit={handleEditPrompt}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Grid de tarjetas regulares */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {filteredPrompts.map((prompt) => (
+          {filteredRegular.map((prompt) => (
             <PromptCard
               key={prompt.id}
               id={prompt.id}
@@ -108,6 +166,7 @@ const Index = () => {
               title={prompt.title}
               isFavorite={prompt.isFavorite}
               onToggleFavorite={handleToggleFavorite}
+              onEdit={handleEditPrompt}
             />
           ))}
         </div>
@@ -230,6 +289,15 @@ const Index = () => {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         onSave={handleAddPrompt}
+      />
+
+      {/* Edit Prompt Modal */}
+      <EditPromptModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        prompt={editingPrompt}
+        onSave={handleSaveEdit}
+        onDelete={handleDeletePrompt}
       />
     </div>
   );

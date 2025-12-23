@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check, Heart } from "lucide-react";
+import { Copy, Check, Heart, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -10,9 +10,10 @@ interface PromptCardProps {
   title?: string;
   isFavorite?: boolean;
   onToggleFavorite?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
-const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleFavorite }: PromptCardProps) => {
+const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleFavorite, onEdit }: PromptCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -39,6 +40,11 @@ const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleF
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleFavorite?.(id);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(id);
   };
 
   return (
@@ -87,10 +93,14 @@ const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleF
             </div>
           )}
           
-          {/* Flip indicator */}
-          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <span className="text-xs text-muted-foreground">Tap para ver prompt</span>
-          </div>
+          {/* Edit button */}
+          <button
+            onClick={handleEdit}
+            className="absolute top-2 right-2 p-2 rounded-full bg-background/60 backdrop-blur-sm hover:bg-background/80 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
+            aria-label="Editar prompt"
+          >
+            <Pencil className="w-4 h-4 text-foreground/70" />
+          </button>
         </div>
 
         {/* Back - Prompt */}
