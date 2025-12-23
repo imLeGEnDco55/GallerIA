@@ -59,66 +59,19 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-3">
-              {/* Search toggle + input */}
-              <div className="flex items-center">
-                <div
-                  className={cn(
-                    "flex items-center overflow-hidden transition-all duration-300 ease-out",
-                    isSearchOpen ? "w-48 sm:w-64" : "w-0"
-                  )}
-                >
-                  <div className="relative w-full">
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Buscar prompts..."
-                      className="w-full h-10 pl-3 pr-8 rounded-full bg-muted/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                      autoFocus={isSearchOpen}
-                    />
-                    {searchTerm && (
-                      <button
-                        onClick={() => setSearchTerm("")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
-                      >
-                        <X className="w-3 h-3 text-muted-foreground" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => {
-                    setIsSearchOpen(!isSearchOpen);
-                    if (isSearchOpen) setSearchTerm("");
-                  }}
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200",
-                    isSearchOpen 
-                      ? "bg-primary/20 text-primary" 
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                  aria-label={isSearchOpen ? "Cerrar búsqueda" : "Buscar"}
-                >
-                  <Search className="w-5 h-5" />
-                </button>
-              </div>
-
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-110 active:scale-95 transition-transform duration-200"
-                aria-label="Agregar nuevo prompt"
-              >
-                <Plus className="w-6 h-6" />
-              </button>
-            </div>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-110 active:scale-95 transition-transform duration-200"
+              aria-label="Agregar nuevo prompt"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 pb-24">
         {/* Search results indicator */}
         {searchTerm && (
           <div className="mb-4 text-sm text-muted-foreground">
@@ -170,6 +123,72 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* Floating Search Button */}
+      <div className="fixed bottom-6 left-6 z-50">
+        {/* Search Overlay Panel */}
+        <div
+          className={cn(
+            "absolute bottom-16 left-0 transition-all duration-300 ease-out origin-bottom-left",
+            isSearchOpen
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-95 translate-y-2 pointer-events-none"
+          )}
+        >
+          <div className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-4 w-72 sm:w-80">
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Buscar prompts</span>
+            </div>
+            
+            <div className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Título, prompt o categoría..."
+                className="w-full h-11 pl-4 pr-10 rounded-xl bg-muted/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                autoFocus={isSearchOpen}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+
+            {searchTerm && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                {filteredPrompts.length} resultado{filteredPrompts.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* FAB Button */}
+        <button
+          onClick={() => {
+            setIsSearchOpen(!isSearchOpen);
+            if (isSearchOpen) setSearchTerm("");
+          }}
+          className={cn(
+            "w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300",
+            isSearchOpen
+              ? "bg-primary text-primary-foreground rotate-0"
+              : "bg-card border border-border/50 text-foreground hover:bg-muted"
+          )}
+          aria-label={isSearchOpen ? "Cerrar búsqueda" : "Buscar"}
+        >
+          {isSearchOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Search className="w-6 h-6" />
+          )}
+        </button>
+      </div>
 
       {/* Add Prompt Modal */}
       <AddPromptModal
