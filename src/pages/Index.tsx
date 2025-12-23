@@ -6,23 +6,41 @@ import { Prompt } from "@/types/prompt";
 import { Plus, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Categorías disponibles
+const CATEGORIES = ["Paisajes", "Retratos", "Arte", "Ciencia ficción", "Fantasía"];
+
 const Index = () => {
   const [prompts, setPrompts] = useState<Prompt[]>(samplePrompts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Filtrado en tiempo real
+  // Filtrado en tiempo real por texto y categoría
   const filteredPrompts = useMemo(() => {
-    if (!searchTerm.trim()) return prompts;
+    let result = prompts;
     
-    const term = searchTerm.toLowerCase();
-    return prompts.filter((prompt) =>
-      prompt.title?.toLowerCase().includes(term) ||
-      prompt.prompt.toLowerCase().includes(term) ||
-      prompt.category?.toLowerCase().includes(term)
-    );
-  }, [prompts, searchTerm]);
+    // Filtrar por categoría
+    if (selectedCategory) {
+      result = result.filter((prompt) => prompt.category === selectedCategory);
+    }
+    
+    // Filtrar por texto
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter((prompt) =>
+        prompt.title?.toLowerCase().includes(term) ||
+        prompt.prompt.toLowerCase().includes(term) ||
+        prompt.category?.toLowerCase().includes(term)
+      );
+    }
+    
+    return result;
+  }, [prompts, searchTerm, selectedCategory]);
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory((prev) => (prev === category ? null : category));
+  };
 
   const handleAddPrompt = (newPromptData: Omit<Prompt, "id" | "createdAt" | "updatedAt">) => {
     const newPrompt: Prompt = {
@@ -136,9 +154,22 @@ const Index = () => {
           )}
         >
           <div className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-4 w-72 sm:w-80">
-            <div className="flex items-center gap-2 mb-3">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Buscar prompts</span>
+            {/* Category chips */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {CATEGORIES.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryClick(category)}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200",
+                    selectedCategory === category
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
             
             <div className="relative">
@@ -146,7 +177,7 @@ const Index = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Título, prompt o categoría..."
+                placeholder="Buscar por título o prompt..."
                 className="w-full h-11 pl-4 pr-10 rounded-xl bg-muted/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 autoFocus={isSearchOpen}
               />
@@ -160,9 +191,10 @@ const Index = () => {
               )}
             </div>
 
-            {searchTerm && (
+            {(searchTerm || selectedCategory) && (
               <p className="mt-3 text-xs text-muted-foreground">
                 {filteredPrompts.length} resultado{filteredPrompts.length !== 1 ? 's' : ''}
+                {selectedCategory && <span className="ml-1">en {selectedCategory}</span>}
               </p>
             )}
           </div>
@@ -172,7 +204,10 @@ const Index = () => {
         <button
           onClick={() => {
             setIsSearchOpen(!isSearchOpen);
-            if (isSearchOpen) setSearchTerm("");
+            if (isSearchOpen) {
+              setSearchTerm("");
+              setSelectedCategory(null);
+            }
           }}
           className={cn(
             "w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300",
