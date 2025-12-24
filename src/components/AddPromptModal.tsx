@@ -24,19 +24,10 @@ interface AddPromptModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (prompt: Omit<Prompt, "id" | "createdAt" | "updatedAt">) => void;
+  categories: string[];
 }
 
-const categories = [
-  { value: "paisajes", label: "Paisajes" },
-  { value: "retratos", label: "Retratos" },
-  { value: "personajes", label: "Personajes" },
-  { value: "surrealismo", label: "Surrealismo" },
-  { value: "cyberpunk", label: "Cyberpunk" },
-  { value: "fantasia", label: "Fantasía" },
-  { value: "otro", label: "Otro" },
-];
-
-const AddPromptModal = ({ open, onOpenChange, onSave }: AddPromptModalProps) => {
+const AddPromptModal = ({ open, onOpenChange, onSave, categories }: AddPromptModalProps) => {
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
   const [category, setCategory] = useState("");
@@ -63,7 +54,7 @@ const AddPromptModal = ({ open, onOpenChange, onSave }: AddPromptModalProps) => 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !prompt.trim() || !category || !imagePreview) {
       toast.error("Por favor completa todos los campos");
       return;
@@ -165,8 +156,8 @@ const AddPromptModal = ({ open, onOpenChange, onSave }: AddPromptModalProps) => 
               </SelectTrigger>
               <SelectContent className="bg-card border-border/50">
                 {categories.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
                   </SelectItem>
                 ))}
               </SelectContent>

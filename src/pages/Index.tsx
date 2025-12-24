@@ -1,28 +1,35 @@
 import { useState, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import { db } from "@/lib/db";
 import PromptCard from "@/components/PromptCard";
 import AddPromptModal from "@/components/AddPromptModal";
 import EditPromptModal from "@/components/EditPromptModal";
 import { samplePrompts } from "@/data/samplePrompts";
 import { Prompt } from "@/types/prompt";
-import { Plus, Search, X, Pin } from "lucide-react";
+import { Plus, Search, X, Pin, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Categorías disponibles
-const CATEGORIES = ["Paisajes", "Retratos", "Arte", "Ciencia ficción", "Fantasía"];
+import SettingsModal from "@/components/SettingsModal";
+import headerLogo from "@/assets/header_logo.png";
+
+const DEFAULT_CATEGORIES = ["Paisajes", "Retratos", "Arte", "Ciencia ficción", "Fantasía"];
 
 const Index = () => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [gridColumns, setGridColumns] = useState<2 | 3 | 4>(4);
 
   // Cargar prompts desde DB
   useEffect(() => {
-    const loadPrompts = async () => {
+    const loadData = async () => {
       try {
         const storedPrompts = await db.getAllPrompts();
         if (storedPrompts.length > 0) {
@@ -35,12 +42,22 @@ const Index = () => {
           }
           setPrompts(samplePrompts);
         }
+
+        const storedCategories = await db.getCategories();
+        if (storedCategories && storedCategories.length > 0) {
+          setCategories(storedCategories);
+        } else {
+          await db.saveCategories(DEFAULT_CATEGORIES);
+        }
+
+        const storedGrid = await db.getGridColumns();
+        if (storedGrid) setGridColumns(storedGrid as 2 | 3 | 4);
       } catch (error) {
-        console.error("Error loading prompts:", error);
+        console.error("Error loading data:", error);
         setPrompts(samplePrompts); // Fallback
       }
     };
-    loadPrompts();
+    loadData();
   }, []);
 
   // Separar favoritos y no favoritos
@@ -125,28 +142,111 @@ const Index = () => {
     setPrompts((prev) => prev.filter((p) => p.id !== id));
   };
 
+  const handleUpdateCategories = async (newCategories: string[]) => {
+    await db.saveCategories(newCategories);
+    setCategories(newCategories);
+  };
+
+  const handleGridColumnsChange = async (cols: 2 | 3 | 4) => {
+    setGridColumns(cols);
+    await db.saveGridColumns(cols);
+  };
+
+  const handleExportData = async () => {
+    try {
+      const data = {
+        prompts: await db.getAllPrompts(),
+        categories: await db.getCategories() || DEFAULT_CATEGORIES
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `galleria-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Copia de seguridad descargada");
+    } catch (e) {
+      toast.error("Error al exportar datos");
+    }
+  };
+
+  const handleImportData = async (file: File) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+        if (data.prompts && Array.isArray(data.prompts)) {
+          await db.resetAllData();
+          for (const p of data.prompts) await db.addPrompt(p);
+          if (data.categories) await db.saveCategories(data.categories);
+
+          // Reload state
+          setPrompts(data.prompts.reverse());
+          setCategories(data.categories || DEFAULT_CATEGORIES);
+          toast.success("Datos restaurados correctamente");
+          setIsSettingsOpen(false);
+        } else {
+          toast.error("Formato de archivo inválido");
+        }
+      } catch (err) {
+        toast.error("Error al procesar el archivo");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleResetData = async () => {
+    if (confirm("¿Estás seguro? Se borrarán todos tus prompts y configuraciones.")) {
+      await db.resetAllData();
+      setPrompts([]);
+      setCategories(DEFAULT_CATEGORIES);
+      await db.saveCategories(DEFAULT_CATEGORIES);
+      toast.success("Aplicación reiniciada de fábrica");
+      setIsSettingsOpen(false);
+    }
+  };
+
+  const gridClassName = useMemo(() => cn(
+    "grid gap-4 mb-6",
+    gridColumns === 2 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    gridColumns === 3 && "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
+    gridColumns === 4 && "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+  ), [gridColumns]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Prompt Album
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Tu colección de prompts para IA
-              </p>
+            <div className="flex items-center">
+              <img
+                src={headerLogo}
+                alt="Galer.IA"
+                className="h-10 w-auto object-contain"
+              />
             </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-110 active:scale-95 transition-transform duration-200"
-              aria-label="Agregar nuevo prompt"
-            >
-              <Plus className="w-6 h-6" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="w-12 h-12 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center shadow-sm hover:bg-secondary/80 transition-colors duration-200"
+                aria-label="Ajustes"
+              >
+                <Settings className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-110 active:scale-95 transition-transform duration-200"
+                aria-label="Agregar nuevo prompt"
+              >
+                <Plus className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -169,7 +269,7 @@ const Index = () => {
               <Pin className="w-4 h-4 text-accent" />
               <span className="text-sm font-medium text-foreground">Favoritos</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
+            <div className={gridClassName}>
               {filteredFavorites.map((prompt) => (
                 <PromptCard
                   key={prompt.id}
@@ -187,7 +287,7 @@ const Index = () => {
         )}
 
         {/* Grid de tarjetas regulares */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className={gridClassName}>
           {filteredRegular.map((prompt) => (
             <PromptCard
               key={prompt.id}
@@ -246,7 +346,7 @@ const Index = () => {
           <div className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-4 w-72 sm:w-80">
             {/* Category chips */}
             <div className="flex flex-wrap gap-2 mb-3">
-              {CATEGORIES.map((category) => (
+              {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryClick(category)}
@@ -320,6 +420,19 @@ const Index = () => {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         onSave={handleAddPrompt}
+        categories={categories}
+      />
+
+      <SettingsModal
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        categories={categories}
+        onUpdateCategories={handleUpdateCategories}
+        onExportData={handleExportData}
+        onImportData={handleImportData}
+        onResetData={handleResetData}
+        gridColumns={gridColumns}
+        onGridColumnsChange={handleGridColumnsChange}
       />
 
       {/* Edit Prompt Modal */}

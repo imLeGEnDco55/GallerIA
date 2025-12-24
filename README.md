@@ -1,136 +1,96 @@
-# 🎨 GallerIA - Álbum de Prompts
+# 🎨 Galer.IA - Álbum de Prompts
 
-Una aplicación web moderna para organizar, buscar y gestionar tu colección personal de prompts de IA. Diseñada con un enfoque visual atractivo usando tarjetas con efecto flip y una interfaz intuitiva.
+Una aplicación web moderna y progresiva (PWA/Nativa) para organizar, buscar y gestionar tu colección personal de prompts de IA. Diseñada con un enfoque visual atractivo usando tarjetas con efecto flip y una interfaz intuitiva con "Glassmorphism".
 
 ![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)
 ![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite)
+![IndexedDB](https://img.shields.io/badge/IndexedDB-Local-FEAD2A?logo=firebase)
 
 ## ✨ Características
 
-### 📇 Tarjetas con Flip Animation
-- **Frente**: Vista previa con título, categoría e imagen
-- **Atrás**: Prompt completo con botón de copiado rápido
+### 💾 Persistencia Local (IndexedDB)
+- Tus prompts y categorías se guardan en el dispositivo de forma segura.
+- No pierdes datos al recargar o cerrar la app.
+- Migración automática de esquema de base de datos.
 
-### 🔍 Búsqueda y Filtros
-- Búsqueda en tiempo real mientras escribes
-- Filtro por categorías con chips interactivos
-- Panel de búsqueda flotante estilo chat
+### ⚙️ Gestión de Ajustes (Nuevo)
+- **Categorías**: Panel para añadir y eliminar categorías personalizadas.
+- **Apariencia**: Elige el tamaño de la rejilla (Grande, Media o Compacta) para adaptar la vista.
+- **Datos**: Herramientas para **Exportar** (Backup JSON), **Importar** y **Resetear** la aplicación.
 
-### ⭐ Sistema de Favoritos
-- Marca prompts como favoritos con un corazón
-- Los favoritos aparecen "pinneados" en la parte superior
-- Acceso rápido a tus prompts más usados
+### 📇 Tarjetas Interactivas
+- **Frente**: Vista previa visual con título e imagen.
+- **Atrás**: Prompt completo.
+- **Herramientas**:
+    - **Copiar**: Botón optimizado para portapapeles.
+    - **Compartir**: Botón nativo (Web Share API) para enviar prompts a otras apps (WhatsApp, Telegram, etc.).
+    - **Favoritos**: Marca tus prompts esenciales.
 
-### ✏️ Gestión Completa
-- Crear nuevos prompts con imagen opcional
-- Editar prompts existentes
-- Eliminar con confirmación
-- Copiar prompt al portapapeles con un click
+### 🔍 Búsqueda Avanzada
+- Búsqueda en tiempo real (título, contenido, categoría).
+- Panel flotante con acceso rápido.
+- Filtrado por categorías dinámicas.
 
-### 📱 Diseño Responsive
-- Grid adaptable (1-4 columnas según pantalla)
-- Optimizado para móvil, tablet y desktop
-- Dark mode con colores vibrantes
+### 📱 Diseño Adaptable
+- **Responsive**: Se ve genial en móviles y escritorio.
+- **Modo Oscuro**: Tema visual por defecto.
 
 ## 🛠️ Stack Tecnológico
 
 | Tecnología | Uso |
 |------------|-----|
 | **React 18** | UI con hooks modernos |
-| **TypeScript** | Tipado estático |
+| **TypeScript** | Tipado estático robusto |
 | **Tailwind CSS** | Estilos utility-first |
-| **shadcn/ui** | Componentes accesibles |
-| **Vite** | Build tool ultra-rápido |
-| **Lucide React** | Iconografía consistente |
+| **shadcn/ui** | Componentes base accesibles y elegantes |
+| **IndexedDB (idb)** | Base de datos local asíncrona |
+| **Capacitor** | (En proceso) Wrapper para App Nativa Android |
 
 ## 🚀 Instalación
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/imLeGEnDco55/GallerIA.git
-
-# Entrar al directorio
-cd GallerIA
-
 # Instalar dependencias
 npm install
-# o con bun
-bun install
 
 # Iniciar servidor de desarrollo
 npm run dev
-# o
-bun dev
-```
 
-La app estará disponible en `http://localhost:5173`
+# Generar build de producción
+npm run build
+```
 
 ## 📁 Estructura del Proyecto
 
 ```
 src/
 ├── components/
-│   ├── ui/              # Componentes shadcn/ui
-│   ├── PromptCard.tsx   # Tarjeta con flip animation
-│   ├── AddPromptModal.tsx
-│   ├── EditPromptModal.tsx
-│   └── NavLink.tsx
-├── data/
-│   └── samplePrompts.ts # Prompts de ejemplo
-├── pages/
-│   ├── Index.tsx        # Página principal
-│   └── NotFound.tsx
-├── types/
-│   └── prompt.ts        # Tipos TypeScript
-├── hooks/               # Custom hooks
+│   ├── SettingsModal.tsx   # Panel de control (Categorías, Grid, Datos)
+│   ├── PromptCard.tsx      # Tarjeta con Flip, Copy & Share
+│   ├── AddPromptModal.tsx  # Crear prompts
+│   └── ...
 ├── lib/
-│   └── utils.ts         # Utilidades
-└── index.css            # Estilos globales
+│   └── db.ts               # Capa de abstracción para IndexedDB
+├── pages/
+│   └── Index.tsx           # Lógica principal y orquestación
+└── assets/
+    └── header_logo.png     # Branding Galer.IA
 ```
 
-## 🎯 Uso
+## 🗺️ Roadmap Completado
 
-1. **Agregar Prompt**: Click en el botón `+` para crear un nuevo prompt
-2. **Ver Prompt**: Click en una tarjeta para voltearla y ver el contenido completo
-3. **Copiar**: Click en el ícono de copiar en la parte trasera de la tarjeta
-4. **Favoritos**: Click en el corazón para marcar/desmarcar
-5. **Buscar**: Click en la lupa flotante para abrir el panel de búsqueda
-6. **Filtrar**: Selecciona una categoría en el panel de búsqueda
-7. **Editar**: Click en el ícono de lápiz al hacer hover sobre una tarjeta
-
-## 🗺️ Roadmap
-
-- [ ] Persistencia con GitHub API (almacenar en repo)
-- [ ] Mejorador de prompts con IA
-- [ ] Exportar/Importar colección
-- [ ] Compartir prompts individuales
-- [ ] Temas personalizables
-- [ ] Sincronización entre dispositivos
-- [ ] Historial de versiones de prompts
-- [ ] Etiquetas personalizadas
+- [x] Persistencia local total (Prompts + Imágenes + Config)
+- [x] Gestión dinámica de categorías
+- [x] Sistema de Backup (Exportar/Importar JSON)
+- [x] Control de visualización (Rejilla variable)
+- [x] Copiado y Compartido nativo
+- [x] Rebranding a Galer.IA
 
 ## 🤝 Contribuir
 
-Las contribuciones son bienvenidas. Para cambios importantes:
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+Las contribuciones son bienvenidas. Por favor abre un issue primero para discutir lo que te gustaría cambiar.
 
 ## 📄 Licencia
 
-MIT © 2024
-
-## 🙏 Agradecimientos
-
-- Construido con [Lovable](https://lovable.dev)
-- Componentes UI de [shadcn/ui](https://ui.shadcn.com/)
-- Iconos de [Lucide](https://lucide.dev/)
-
----
-
-**⭐ Si te gusta este proyecto, dale una estrella en GitHub!**
+MIT © 2025 Galer.IA

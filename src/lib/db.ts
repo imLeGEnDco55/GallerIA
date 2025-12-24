@@ -7,44 +7,78 @@ interface GallerIADB extends DBSchema {
         value: Prompt;
         indexes: { 'by-date': string };
     };
+    settings: {
+        key: string;
+        value: any;
+    };
 }
 
 const DB_NAME = 'GallerIA-DB';
-const STORE_NAME = 'prompts';
+const PROMPT_STORE = 'prompts';
+const SETTINGS_STORE = 'settings';
 
-export const dbPromise = openDB<GallerIADB>(DB_NAME, 1, {
-    upgrade(db) {
-        const store = db.createObjectStore(STORE_NAME, {
-            keyPath: 'id',
-        });
-        store.createIndex('by-date', 'createdAt');
+export const dbPromise = openDB<GallerIADB>(DB_NAME, 2, {
+    upgrade(db, oldVersion, newVersion, transaction, event) {
+        if (oldVersion < 1) {
+            const store = db.createObjectStore(PROMPT_STORE, {
+                keyPath: 'id',
+            });
+            store.createIndex('by-date', 'createdAt');
+        }
+        if (oldVersion < 2) {
+            db.createObjectStore(SETTINGS_STORE);
+        }
     },
 });
 
 export const db = {
     async getAllPrompts(): Promise<Prompt[]> {
         const db = await dbPromise;
-        return db.getAllFromIndex(STORE_NAME, 'by-date');
+        return db.getAllFromIndex(PROMPT_STORE, 'by-date');
     },
 
     async addPrompt(prompt: Prompt): Promise<string> {
         const db = await dbPromise;
-        await db.put(STORE_NAME, prompt);
+        await db.put(PROMPT_STORE, prompt);
         return prompt.id;
     },
 
     async updatePrompt(prompt: Prompt): Promise<string> {
         const db = await dbPromise;
-        await db.put(STORE_NAME, prompt);
+        await db.put(PROMPT_STORE, prompt);
         return prompt.id;
     },
 
     async deletePrompt(id: string): Promise<void> {
         const db = await dbPromise;
-        await db.delete(STORE_NAME, id);
+        await db.delete(PROMPT_STORE, id);
     },
 
-    // Helper to convert Blob/File to Base64 (if needed for other storages, but IDB supports blobs directly in Chrome/Android)
-    // For safety in this specific Capacitor/Vite React stack, storing as DataURLs (strings) is easiest to render immediately,
-    // but let's assume the existing code uses strings for URLs.
+    async getCategories(): Promise<string[] | undefined> {
+        const db = await dbPromise;
+        return db.get(SETTINGS_STORE, 'categories');
+    },
+
+    async saveCategories(categories: string[]): Promise<void> {
+        const db = await dbPromise;
+        await db.put(SETTINGS_STORE, categories, 'categories');
+    },
+
+    async getGridColumns(): Promise<number | undefined> {
+        const db = await dbPromise;
+        return db.get(SETTINGS_STORE, 'gridColumns');
+    },
+
+    async saveGridColumns(cols: number): Promise<void> {
+        const db = await dbPromise;
+        await db.put(SETTINGS_STORE, cols, 'gridColumns');
+    },
+
+    async resetAllData(): Promise<void> {
+        const db = await dbPromise;
+        const tx = db.transaction([PROMPT_STORE, SETTINGS_STORE], 'readwrite');
+        await tx.objectStore(PROMPT_STORE).clear();
+        await tx.objectStore(SETTINGS_STORE).clear();
+        await tx.done;
+    }
 };

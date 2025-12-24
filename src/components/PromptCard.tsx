@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check, Heart, Pencil } from "lucide-react";
+import { Copy, Check, Heart, Pencil, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -23,17 +23,35 @@ const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleF
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     try {
       await navigator.clipboard.writeText(prompt);
       setIsCopied(true);
       toast.success("¡Prompt copiado!", {
         description: "Pegalo en tu generador de imágenes favorito",
       });
-      
+
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       toast.error("No se pudo copiar el prompt");
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title || "Prompt de Galer.IA",
+          text: prompt,
+        });
+      } catch (err) {
+        // Share cancelled or failed
+      }
+    } else {
+      toast.info("Compartir es nativo de móviles", {
+        description: "En escritorio usa el botón de copiar."
+      });
     }
   };
 
@@ -48,7 +66,7 @@ const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleF
   };
 
   return (
-    <div 
+    <div
       className="perspective w-full aspect-[3/4] cursor-pointer group"
       onClick={handleFlip}
     >
@@ -66,7 +84,7 @@ const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleF
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
+
           {/* Favorite button */}
           <button
             onClick={handleFavorite}
@@ -80,19 +98,19 @@ const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleF
             <Heart
               className={cn(
                 "w-4 h-4 transition-all duration-300",
-                isFavorite 
-                  ? "fill-accent text-accent scale-110" 
+                isFavorite
+                  ? "fill-accent text-accent scale-110"
                   : "text-foreground/70 hover:text-accent"
               )}
             />
           </button>
-          
+
           {title && (
             <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <p className="text-sm font-medium text-foreground truncate">{title}</p>
             </div>
           )}
-          
+
           {/* Edit button */}
           <button
             onClick={handleEdit}
@@ -117,42 +135,52 @@ const PromptCard = ({ id, imageUrl, prompt, title, isFavorite = false, onToggleF
               <Heart
                 className={cn(
                   "w-4 h-4 transition-all duration-300",
-                  isFavorite 
-                    ? "fill-accent text-accent" 
+                  isFavorite
+                    ? "fill-accent text-accent"
                     : "text-muted-foreground hover:text-accent"
                 )}
               />
             </button>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto">
             <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
               {prompt}
             </p>
           </div>
-          
-          <button
-            onClick={handleCopy}
-            className={cn(
-              "mt-3 w-full py-2.5 px-4 rounded-md flex items-center justify-center gap-2 transition-all duration-200",
-              "bg-primary text-primary-foreground font-medium",
-              "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
-              isCopied && "bg-accent"
-            )}
-          >
-            {isCopied ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>¡Copiado!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span>Copiar Prompt</span>
-              </>
-            )}
-          </button>
-          
+
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleCopy}
+              className={cn(
+                "flex-1 py-2.5 px-4 rounded-md flex items-center justify-center gap-2 transition-all duration-200",
+                "bg-primary text-primary-foreground font-medium",
+                "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
+                isCopied && "bg-accent"
+              )}
+            >
+              {isCopied ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Copiado</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copiar</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleShare}
+              className="p-2.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center justify-center shadow-sm"
+              aria-label="Compartir"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+          </div>
+
           {/* Tap to flip back indicator */}
           <p className="text-xs text-muted-foreground text-center mt-2">
             Tap para volver
