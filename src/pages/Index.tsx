@@ -220,14 +220,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
-        <div className="container mx-auto px-4 py-4">
+      <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50 pt-[env(safe-area-inset-top)]">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <img
                 src={headerLogo}
                 alt="Galer.IA"
-                className="h-10 w-auto object-contain"
+                className="h-12 sm:h-14 w-auto object-contain"
               />
             </div>
 
